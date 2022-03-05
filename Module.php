@@ -147,11 +147,12 @@ class Module extends \Aurora\System\Module\AbstractWebclientModule
 		}
 	}
 
-	public function ValidateToken() {
-
+	public function ValidateToken() 
+	{
 		try {
 			$oUser = Api::getAuthenticatedUser();
 			if ($oUser) {
+
 				$oAccount = OauthAccount::where('Type', $this->sService)->where('Email', $oUser->PublicId)->first();
 
 				if ($oAccount) {
@@ -167,12 +168,18 @@ class Module extends \Aurora\System\Module\AbstractWebclientModule
 						$oAccount->AccessToken = \json_encode($token->jsonSerialize());
 						$oAccount->save();
 					}
+				} else {
+					throw new ApiException(Notifications::AuthError);
 				}
+			} else {
+				throw new ApiException(Notifications::AuthError);
 			}
 		} catch (\Exception $oEx) {
 			Api::LogException($oEx);
 			throw new ApiException(Notifications::AuthError);
 		}
+
+		return true;
 	}
 
 	public function onBeforeLogout()
