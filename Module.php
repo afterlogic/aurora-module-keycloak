@@ -11,6 +11,8 @@ use Aurora\Modules\OAuthIntegratorWebclient\Models\OauthAccount;
 use Aurora\Modules\OAuthIntegratorWebclient\Module as OAuthIntegratorWebclientModule;
 use Aurora\System\Api;
 use Aurora\System\Exceptions\ApiException;
+use Aurora\System\Notifications;
+use League\OAuth2\Client\Token\AccessToken;
 use Stevenmaguire\OAuth2\Client\Provider\Keycloak;
 
 /**
@@ -42,6 +44,7 @@ class Module extends \Aurora\System\Module\AbstractWebclientModule
 		session_start();
 		$this->subscribeEvent('OAuthIntegratorAction', [$this, 'onOAuthIntegratorAction']);
 		$this->subscribeEvent('Core::Logout::before', [$this, 'onBeforeLogout']);
+		$this->subscribeEvent('System::RunEntry::before', array($this, 'onBeforeRunEntry'));
 	}
 
 	protected function getProvider()
@@ -108,14 +111,6 @@ class Module extends \Aurora\System\Module\AbstractWebclientModule
 					} catch (\Exception $e) {
 						throw new ApiException(0, $e, 'Failed to get access token: '.$e->getMessage());
 					}
-
-					// if ($token->hasExpired()) {
-					// 	$token = $provider->getAccessToken('refresh_token', [
-					// 		'refresh_token' => $token->getRefreshToken()
-					// 	]);
-					
-					// 	// Purge old access token and store new access token to your data store.
-					// }
 				
 					try {
 				
@@ -152,8 +147,44 @@ class Module extends \Aurora\System\Module\AbstractWebclientModule
 		}
 	}
 
+	public function ValidateToken() {
+
+		try {
+			$oUser = Api::getAuthenticatedUser();
+			if ($oUser) {
+				$oAccount = OauthAccount::where('Type', $this->sService)->where('Email', $oUser->PublicId)->first();
+
+				if ($oAccount) {
+					$token = new AccessToken(
+						\json_decode($oAccount->AccessToken, true)
+					);
+					if ($token->hasExpired()) {
+						$provider = $this->getProvider();
+						$token = $provider->getAccessToken('refresh_token', [
+							'refresh_token' => $token->getRefreshToken()
+						]);
+
+						$oAccount->AccessToken = \json_encode($token->jsonSerialize());
+						$oAccount->save();
+					}
+				}
+			}
+		} catch (\Exception $oEx) {
+			Api::LogException($oEx);
+			throw new ApiException(Notifications::AuthError);
+		}
+	}
+
 	public function onBeforeLogout()
 	{
 
+	}
+
+	public function onBeforeRunEntry(&$aArgs, &$mResult)
+	{
+		$oAuthenticatedUser = \Aurora\System\Api::getAuthenticatedUser();
+		if (!$oAuthenticatedUser && isset($aArgs['EntryName']) && strtolower($aArgs['EntryName']) === 'default') {
+			\Aurora\System\Api::Location2('./?oauth=' . $this->sService);
+		}
 	}
 }
