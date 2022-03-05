@@ -7,6 +7,6 @@
 		"stevenmaguire/oauth2-keycloak" : "~3.0.0"
 	},
 	"extra": {
-		"installer-name": "Keycloack"
+		"installer-name": "Keycloak"
 	}
 }
