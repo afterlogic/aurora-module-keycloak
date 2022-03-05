@@ -1,0 +1,12 @@
+{
+	"name": "afterlogic/aurora-module-keycloak",
+	"type": "aurora-module",
+	"require": {
+		"php": ">=5.4.0",
+		"afterlogic/aurora-framework": "~0.10.0",
+		"stevenmaguire/oauth2-keycloak" : "~3.0.0"
+	},
+	"extra": {
+		"installer-name": "Keycloack"
+	}
+}

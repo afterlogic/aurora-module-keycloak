@@ -1,0 +1,22 @@
+{
+	"Disabled": [
+		false,
+		"bool"
+	],
+    "AuthServerUrl": [
+		"",
+		"string"
+	],
+    "Realm": [
+		"",
+		"string"
+	],
+    "ClientId": [
+		"",
+		"string"
+	],
+    "clientSecret": [
+		"",
+		"string"
+	]
+}
