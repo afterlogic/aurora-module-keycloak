@@ -119,22 +119,25 @@ class Module extends \Aurora\System\Module\AbstractWebclientModule
 
 						if ($user) {
 
+							$aUser = $user->toArray();
+							$sLogin = isset($aUser['preferred_username']) ? $aUser['preferred_username'] : $user->getId();
+
 							$mResult = array(
 								'type' => $this->sService,
 								'id' => $user->getId(),
 								'name' => $user->getName(),
-								'email' => $user->getEmail(),
+								'email' => $sLogin,
 								'access_token' => \json_encode($token->jsonSerialize()),
 								'refresh_token' => '',
 								'scopes' => ['auth']
 							);
 
-							$oAccount = OauthAccount::where('Type', $this->sService)->where('Email', $user->getEmail())->first();
+							$oAccount = OauthAccount::where('Type', $this->sService)->where('Email', $sLogin)->first();
 							if (!isset($oAccount)) {
 								$_COOKIE["oauth-redirect"] = "register";
 							}
 						}
-				
+										
 					} catch (\Exception $e) {
 						throw new ApiException(0, $e, 'Failed to get resource owner: '.$e->getMessage());
 					}
