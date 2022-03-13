@@ -14,9 +14,10 @@ use Aurora\System\Exceptions\ApiException;
 use Aurora\System\Notifications;
 use League\OAuth2\Client\Token\AccessToken;
 use Stevenmaguire\OAuth2\Client\Provider\Keycloak;
+use GuzzleHttp\Client;
 
 /**
- * Adds ability to login using Dropbox account.
+ * Adds ability to login using Keycloak account.
  *
  * @license https://www.gnu.org/licenses/agpl-3.0.html AGPL-3.0
  * @license https://afterlogic.com/products/common-licensing Afterlogic Software License
@@ -187,7 +188,33 @@ class Module extends \Aurora\System\Module\AbstractWebclientModule
 
 	public function onBeforeLogout()
 	{
+		$client = new Client([
+			'verify' => false,
+		]);
 
+		$oUser = Api::getAuthenticatedUser();
+
+		$oAccount = OauthAccount::where('Type', $this->sService)
+			->where('Email', $oUser->PublicId)->first();
+		if ($oAccount) {
+			$accessToken = \json_decode($oAccount->AccessToken);
+			if ($accessToken) {
+				$client->post(
+					$this->getConfig('AuthServerUrl') . '/realms/'. $this->getConfig('Realm') . '/protocol/openid-connect/logout',
+					[
+						'headers' => [
+							'Content-Type' => 'application/x-www-form-urlencoded',
+						],
+						'form_params' => [
+							'client_id' => $this->getConfig('ClientId'),
+							'client_secret' => $this->getConfig('ClientSecret'),
+							'refresh_token' => $accessToken->refresh_token
+						],
+						'http_errors' => false
+					]
+				);
+			}
+		}
 	}
 
 	public function onBeforeRunEntry(&$aArgs, &$mResult)
