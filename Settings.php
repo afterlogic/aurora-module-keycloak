@@ -5,7 +5,7 @@
  * For full statements of the licenses see LICENSE-AFTERLOGIC and LICENSE-AGPL3 files.
  */
 
-namespace Aurora\Modules\LdapChangePasswordPlugin;
+namespace Aurora\Modules\Keycloak;
 
 use Aurora\System\SettingsProperty;
 

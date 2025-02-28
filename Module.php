@@ -136,7 +136,7 @@ class Module extends \Aurora\System\Module\AbstractWebclientModule
 
                             $oAccount = OauthAccount::where('Type', $this->sService)->where('Email', $sLogin)->first();
                             if (!isset($oAccount)) {
-                                $_COOKIE["oauth-redirect"] = "register";
+                                $_COOKIE['oauth-redirect'] = 'register';
                             }
                         }
 
